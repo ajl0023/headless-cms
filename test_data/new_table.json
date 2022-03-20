@@ -1,0 +1,62 @@
+{
+  "table_name": "tests",
+  "columns": [
+    {
+      "label": "Media",
+      "option_types": [],
+      "options": [
+        {
+          "header": "Type",
+          "target": "type",
+          "options": [
+            {
+              "value": null,
+              "client_name": "Do these items contain multiple images?",
+              "target": "multi"
+            }
+          ]
+        }
+      ],
+      "enabled": true,
+      "type": "media",
+      "value": "234",
+      "column": "media"
+    },
+    {
+      "type": "boolean",
+      "label": "Boolean",
+      "options": [],
+      "option_types": [],
+      "name": "",
+      "column": "boolean",
+      "value": "234"
+    },
+    {
+      "type": "integer",
+      "label": "Number",
+      "options": [],
+      "option_types": [
+        {
+          "header": "Type",
+          "options": [
+            {
+              "type": "decimal",
+              "client_name": "Decimal"
+            },
+            {
+              "type": "integer",
+              "client_name": "Integer"
+            },
+            {
+              "type": "float",
+              "client_name": "Float"
+            }
+          ]
+        }
+      ],
+      "name": "",
+      "column": "number",
+      "value": "234234"
+    }
+  ]
+}
