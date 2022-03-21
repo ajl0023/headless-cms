@@ -1,35 +1,46 @@
 const express = require("express");
-const app = express();
-const port = 3000;
-const crypto = require("crypto");
-const sharp = require("sharp");
-var router = express.Router();
-const fs = require("fs-extra");
-const router2 = express.Router();
-const axios = require("axios").default;
-const streamifier = require("streamifier");
 var _ = require("lodash");
-const ploptest = require("./plop/ploptest");
 
-const path = require("path");
 const knex = require("./knexInstance");
-const Images = require("./models/image/image").model;
+const Entity_Type = require("./models/entity_type/entity_type").model;
 
 async function buildColumns(columns, table) {
   const formatted = generateTypes(columns);
   const types = [];
   const relations = formatted.filter((item) => {
-    console.log(item);
     if (item.type === "relation") {
-      return;
+      return item;
     }
     types.push(item);
   });
 
   buildTableActual(types, relations, table);
 }
-async function buildTableActual(types, relations, table) {
-  console.log(relations);
+function addDefaults(table) {
+  table.uuid("uid").primary().defaultTo(knex.raw("(UUID())"));
+  table.timestamps();
+  return table;
+}
+function chainRelations(columns, table) {
+  columns.forEach((col) => {
+    table.string(col.column_name)["references"](col.related_to + ".uid");
+    table = table;
+  });
+}
+function chainTypes(columns, table) {
+  columns.forEach((col) => {
+    table[col.type](col.column_name);
+    table = table;
+  });
+  return table;
+}
+
+async function buildTableActual(types, relations, tableName) {
+  await knex.schema.createTable(tableName, (table) => {
+    table = addDefaults(table);
+    table = chainTypes(types, table);
+    chainRelations(relations, table);
+  });
 }
 function generateTypes(columns) {
   const formatted = columns.map((item) => {
@@ -51,7 +62,7 @@ function transformAttribute(attribute) {
         type: "relation",
         relation: is_multiple ? "HasOneRelation" : "HasManyRelation",
         column_name: attribute.value,
-        related_to: "images",
+        related_to: "image",
       };
     }
     default: {
@@ -63,31 +74,24 @@ function transformAttribute(attribute) {
     }
   }
 }
-function chainRelations(table) {}
-function chainType(table) {}
-async function createTable(tableName, columns) {
-  await knex.schema.createTable(tableName, (table) => {
-    buildColumns(table, columns);
+async function addToEntities(table) {
+  const entity = await Entity_Type.query().insert({
+    name: table,
+    client_name: _.startCase(table),
   });
+  return entity;
 }
-function generateRelation(attribute) {
-  switch (attribute.relation) {
-    case "HasOneRelation":
-      return {
-        relation: "HasOneRelation",
-      };
-    case "HasManyRelation":
-      return {
-        relation: "HasManyRelation",
-      };
-    default:
-      return {
-        relation: "",
-      };
-  }
+async function addToColumns(table) {
+  const entity = await Entity_Type.query().insert({
+    name: table,
+    client_name: _.startCase(table),
+  });
+  return entity;
 }
 module.exports = {
   buildColumns,
   generateTypes,
-  createTable,
+  addToEntities,
+  addToColumns,
+  addDefaults,
 };

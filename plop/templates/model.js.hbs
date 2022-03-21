@@ -7,52 +7,11 @@ const cursor = cursorMixin({
   total: true,
   hasNext: true
 } });
-class {{modelName}} extends cursor(Model) {
+class {{model_name}} extends cursor(Model) {
   static get tableName() {
-    return "{{tableName}}";
+    return "{{model_name}}";
   }
-  {{#if has_media}}
-  static async beforeDelete(ctx) {
-    const idsToDelete = await ctx.asFindQuery().select("parentId");
-    const imagesToDelete = [];
-    console.log(idsToDelete);
-    const Images = require("../image/image").model;
-    for (const item of idsToDelete) {
-      const images = await Images.query().where({ parentId: item.parentId });
-      const publidIds = images.map((item) => {
-        return item.public_id;
-      });
-      await deleteCloudinaryImages(publidIds);
-    }
-
-    ctx.cancelQuery();
-  }
-  {{/if}}
-
-    static get clientCols() {
-    return {
-      {{#each properties}}
-        {{#unless clientCols.is_foreign_key}}
-          {{#if clientCols.user_field}}
-            {{clientCols.name}}: {
-              type: '{{clientCols.type}}',
-              db_name:'{{clientCols.name}}',
-              is_generated:{{clientCols.is_generated}},
-              
-              foreign_key:{{clientCols.is_foreign_key}},
-
-              {{#if clientCols.media}}
-              media: {{{clientCols.media}}},
-              {{/if}}
-              
-              required: {{clientCols.required}},
-          
-          },
-          {{/if}}
-        {{/unless}}
-      {{/each}} 
-    }
-  }
+ 
   {{#if is_parent}}
   static async afterInsert(ctx) {
     const ChildModel =
@@ -92,7 +51,7 @@ class {{modelName}} extends cursor(Model) {
       relation: Model.HasManyRelation,
       modelClass: require("../image/image").model,
       join: {
-        from: "{{tableName}}.parentId",
+        from: "{{model_name}}.parentId",
         to: 'image.parentId'
       }
     },
@@ -100,7 +59,7 @@ class {{modelName}} extends cursor(Model) {
       relation: Model.HasOneRelation,
       modelClass: require("../image/image").model,
       join: {
-        from: "{{tableName}}.parentId",
+        from: "{{model_name}}.parentId",
         to: 'image.parentId',
         
       },
